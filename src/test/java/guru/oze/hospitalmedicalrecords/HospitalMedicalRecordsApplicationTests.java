@@ -1,4 +1,4 @@
-package org.princely.hospitalmedicalrecords;
+package guru.oze.hospitalmedicalrecords;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
