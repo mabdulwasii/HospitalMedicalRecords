@@ -19,6 +19,7 @@ import org.supercsv.prefs.CsvPreference;
 import javax.servlet.http.HttpServletResponse;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -31,11 +32,19 @@ public class PatientServiceImpl implements PatientService {
     private final SecurityUtil securityUtil;
 
     @Override
-    public ApiResponse createPatient(CreatePatientRequest request, String apiKey) {
+    public ApiResponse createPatient(String apiKey, CreatePatientRequest request) {
         securityUtil.ensureApiKeyIsValid(apiKey);
         Patient patient = DtoTransformer.transformCreatePatientRequestToPatientEntity(request);
         Patient createdPatient = repository.save(patient);
         return DtoTransformer.buildApiResponse(createdPatient);
+    }
+
+    @Override
+    public ApiResponse updatePatientProfile(String apiKey, Patient patient) {
+        securityUtil.ensureApiKeyIsValid(apiKey);
+        Patient updatedProfile = repository.save(patient);
+        log.info("Update patient profile {} " , updatedProfile);
+        return DtoTransformer.buildApiResponse(updatedProfile);
     }
 
     @Override
@@ -47,7 +56,7 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public void exportPatientProfileToCsv(Long patientId, String apiKey, HttpServletResponse response) {
+    public void exportPatientProfileToCsv(String apiKey, Long patientId, HttpServletResponse response) {
         securityUtil.ensureApiKeyIsValid(apiKey);
 
         Optional<Patient> patientOptional = repository.findById(patientId);
@@ -76,5 +85,12 @@ public class PatientServiceImpl implements PatientService {
             log.error("Failed to export patient profile to csv " + e);
             throw new FailedExportToCsvException("Failed to export patient profile to csv");
         }
+    }
+
+    @Override
+    public ApiResponse deletePatientByDateRange(String apiKey, LocalDate startDate, LocalDate endDate) {
+        securityUtil.ensureApiKeyIsValid(apiKey);
+        repository.deleteByLastVisitDateIsBetween(startDate, endDate);
+        return DtoTransformer.buildApiResponse("Patient profile(s) deleted successfully");
     }
 }
