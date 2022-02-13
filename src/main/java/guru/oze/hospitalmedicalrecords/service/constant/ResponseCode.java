@@ -1,4 +1,4 @@
-package guru.oze.hospitalmedicalrecords.service.dto;
+package guru.oze.hospitalmedicalrecords.service.constant;
 
 import lombok.Data;
 import lombok.Getter;

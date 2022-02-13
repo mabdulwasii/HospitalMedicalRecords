@@ -1,18 +1,15 @@
 package guru.oze.hospitalmedicalrecords.controller;
 
+import guru.oze.hospitalmedicalrecords.entity.Staff;
 import guru.oze.hospitalmedicalrecords.exception.ApiKeyNotSetException;
 import guru.oze.hospitalmedicalrecords.service.StaffService;
 import guru.oze.hospitalmedicalrecords.service.dto.ApiResponse;
 import guru.oze.hospitalmedicalrecords.service.dto.CreateStaffRequest;
-import guru.oze.hospitalmedicalrecords.service.dto.ResponseCode;
-import guru.oze.hospitalmedicalrecords.service.dto.StaffDto;
-import guru.oze.hospitalmedicalrecords.utils.EncryptionUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,12 +39,12 @@ public class StaffController {
 
     @PutMapping("staff")
     public ResponseEntity<ApiResponse> updateStaff(
-            @RequestBody @Valid StaffDto staffDto,
+            @RequestBody @Valid Staff staff,
             @RequestHeader("x-api-key") String apiKey
     ) {
-        log.debug("REST request to update staff : {}", staffDto);
+        log.debug("REST request to update staff : {}", staff);
         if (apiKey == null) throw new ApiKeyNotSetException("Access denied, headers not set");
-        ApiResponse response = staffService.updateStaff(staffDto, apiKey);
+        ApiResponse response = staffService.updateStaff(staff, apiKey);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
