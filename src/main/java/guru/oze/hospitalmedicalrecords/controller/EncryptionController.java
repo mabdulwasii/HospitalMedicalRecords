@@ -26,36 +26,15 @@ import javax.validation.Valid;
 @AllArgsConstructor
 @RestController
 @RequestMapping("v1/")
-public class StaffController {
-
-    private final StaffService staffService;
-
-    @PostMapping("staff")
-    public ResponseEntity<ApiResponse> createStaff(
-            @RequestBody @Valid CreateStaffRequest request
-    ){
-        log.info("REST request to create new staff {}", request);
-        ApiResponse response = staffService.createStaff(request);
-        log.info("created staff api response {}", response);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
-    }
-
-    @PutMapping("staff")
-    public ResponseEntity<ApiResponse> updateStaff(
-            @RequestBody @Valid StaffDto staffDto,
-            @RequestHeader("x-api-key") String apiKey
-    ) {
-        log.debug("REST request to update staff : {}", staffDto);
-        if (apiKey == null) throw new ApiKeyNotSetException("Access denied, headers not set");
-        ApiResponse response = staffService.updateStaff(staffDto, apiKey);
+public class EncryptionController {
+    @GetMapping("/encrypt/{value}")
+    public ResponseEntity<ApiResponse> getEncyptedValue(@PathVariable String value){
+        String encrypt = EncryptionUtil.encrypt(value);
+        ApiResponse response = ApiResponse.builder()
+                .code(ResponseCode.SUCCESS.getCode())
+                .message(ResponseCode.SUCCESS.getMessage())
+                .data(encrypt)
+                .build();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
-    @GetMapping("/staff")
-    public ResponseEntity<ApiResponse> getAllStaffs(@RequestHeader("x-api-key") String apikey){
-        ApiResponse response = staffService.getAllStaffs(apikey);
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-
 }
