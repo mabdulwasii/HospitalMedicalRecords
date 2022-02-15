@@ -1,7 +1,7 @@
 server:
   port: 8082
   servlet:
-    context-path: /api
+    context-path: /
 
 spring:
   application:
@@ -14,11 +14,11 @@ spring:
     show-sql: true
     generate-ddl: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     properties:
       hibernate:
         connection:
-          provider_disables_autocommit: true
+          provider_disables_autocommit: false
         id:
           new_generator_mappings: true
         jdbc:
@@ -27,10 +27,13 @@ spring:
     database: mysql
 
   datasource:
-    driverClassName: com.mysql.jdbc.Driver
+    driverClassName: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/hmr
     username: sa
     password: password
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 5
 
   liquibase:
     contexts: dev, faker

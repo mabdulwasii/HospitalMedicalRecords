@@ -11,22 +11,23 @@ create TABLE IF NOT EXISTS patient
     first_name  VARCHAR(50) NOT NULL,
     last_name  VARCHAR(50) NOT NULL,
     age INT NOT NULL,
-    last_visit_date DATE NOT NULL,
+    last_visit_date TIMESTAMP NOT NULL,
     PRIMARY KEY ( id )
 );
 
-CREATE TABLE IF NOT EXISTS user
+create TABLE IF NOT EXISTS user
 (
-    id        INT AUTO_INCREMENT PRIMARY KEY,
+    id        INT AUTO_INCREMENT,
     username  VARCHAR(200) UNIQUE NOT NULL,
     password  VARCHAR(256)        NOT NULL,
     activated BOOL,
     authority VARCHAR(50),
     first_name  VARCHAR(50)        NOT NULL,
     last_name  VARCHAR(50)        NOT NULL,
-    uuid  VARCHAR(255)        NOT NULL default random_uuid(),
-    registration_date DATE NOT NULL
-);
+    uuid  VARCHAR(50)         NOT NULL,
+    registration_date DATE NOT NULL,
+    PRIMARY KEY (id)
+) ;
 
 CREATE TABLE IF NOT EXISTS authority
 (
@@ -40,19 +41,12 @@ CREATE TABLE IF NOT EXISTS user_authority
     user_id      BIGINT COMMENT 'User id',
     authority_id VARCHAR(50) COMMENT 'authority id'
 );
-CREATE TABLE IF NOT EXISTS patient
-(
-    id              INT PRIMARY KEY AUTO_INCREMENT COMMENT 'patient',
-    first_name      VARCHAR(50) COMMENT 'First name',
-    last_name       VARCHAR(50) COMMENT 'Last name',
-    age             INT COMMENT 'Age',
-    last_visit_date TIMESTAMP COMMENT 'Last visit date'
-);
 
-INSERT INTO user (id, username, password, activated, first_name, last_name, registration_date)
-VALUES (1, 'admin@example.com', '$2a$04$Ot6tX0QK8xzo/xW5A/J3F.QZDS7eio095dN5IoQjWJDOySs42f1S.', true, 'Sola', 'Greg', 2021-07-24),
+INSERT INTO user (id, username, password, activated, first_name, last_name, uuid, registration_date)
+VALUES (1, 'admin@example.com', '$2a$04$Ot6tX0QK8xzo/xW5A/J3F.QZDS7eio095dN5IoQjWJDOySs42f1S.', true, 'Sola', 'Greg',
+        '586bcc2d-9a96-11e6-852c-4439c456d444', '2020-07-04'),
        (2, 'user@example.com', '$2a$04$Ot6tX0QK8xzo/xW5A/J3F.QZDS7eio095dN5IoQjWJDOySs42f1S.', true, 'Dempis',
-        'Kolr', 2021-07-24 );
+        'Manga', '841ae775-9a96-11e6-852c-4439c456d444 ', '2021-07-24' );
 
 INSERT INTO authority (id, name)
 VALUES (1, 'ROLE_ADMIN'),

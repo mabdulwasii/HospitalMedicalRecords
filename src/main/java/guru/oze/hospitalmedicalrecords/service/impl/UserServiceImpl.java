@@ -34,9 +34,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public ApiResponse registerStaff(StaffInfo staffInfo) {
-
 		if (staffInfo.getPassword().equalsIgnoreCase(staffInfo.getConfirmPassword())) {
-
 			String encryptedPassword = passwordEncoder.encode(staffInfo.getPassword());
 			Set<Authority> authorities = new HashSet<>();
 			authorityRepository.findByName(AuthorityType.ROLE_USER).ifPresent(authorities::add);
