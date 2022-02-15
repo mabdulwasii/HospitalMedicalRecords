@@ -1,5 +1,6 @@
 package guru.oze.hospitalmedicalrecords.service.impl;
 
+import guru.oze.hospitalmedicalrecords.exception.GenericException;
 import guru.oze.hospitalmedicalrecords.security.jwt.JWTUtils;
 import guru.oze.hospitalmedicalrecords.security.jwt.UserDetailsImpl;
 import guru.oze.hospitalmedicalrecords.service.AuthService;
@@ -62,6 +63,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ApiResponse register(StaffInfo staffInfo) {
+        if (userService.existsByUsername(staffInfo.getUsername())){
+            throw new GenericException("Error: Username taken. Please input another username");
+        }
        return userService.registerStaff(staffInfo);
     }
 }

@@ -25,11 +25,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
-import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(classes = HospitalMedicalRecordsApplication.class)
@@ -39,8 +37,9 @@ class AuthControllerTest {
     public static final String ACCESS_TOKEN = "$%^&&***";
     public static final String REFRESH_TOKEN = "436%%#&*#373883";
     public static final Integer USER_ID = 1;
-    public static final String username = "admin@example.com";
-	public static final String PASSWORD = "admin";
+    public static final String username = "user@example.com";
+	public static final String PASSWORD = "Admin1342525#";
+	public static final String INVALIDPASSWORD = "admin1342525#";
     public static final String USERNAME = "admin@example.com";
     public static final String FIRSTNAME = "Ade";
     public static final String LASTNAME = "John";
@@ -87,27 +86,6 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("Should not signup if username exist")
-    void shouldNotSignupIfUsernameExists() throws Exception {
-        var apiResponse = ApiResponse.builder()
-                .code(ResponseCode.SUCCESS.getCode())
-                .message("Error: Username taken. Please input another username")
-                .build();
-
-        when(userRepository.existsByUsername(username)).thenReturn(true);
-
-        //execute the post request
-        mockMvc.perform(post("/api/v1/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(staffInfo)))
-
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().json(asJsonString(apiResponse)))
-                .andExpect(jsonPath("$.message", is("Error: Username taken. Please input another username")));
-    }
-
-    @Test
     @DisplayName("Should not signup if email is invalid")
     void shouldNotSignupIfEmailIsInvalid() {
 
@@ -132,7 +110,7 @@ class AuthControllerTest {
 
         when(authService.authenticate(loginDetails)).thenReturn(response);
 
-        mockMvc.perform(post("/api/v1/register")
+        mockMvc.perform(post("/api/v1/authenticate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(loginDetails)))
                 .andExpect(status().isOk());

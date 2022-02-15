@@ -54,11 +54,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> findByUserName(String username) {
-        return userRepository.findOneWithAuthoritiesByUsernameIgnoreCase(username);
-    }
-
-    @Override
     public ApiResponse updateStaff(HttpServletRequest request, StaffDto staffDto) {
         securityUtil.ensureApiKeyIsValid(request);
         Optional<User> userOptional = userRepository.findById(staffDto.getId());
