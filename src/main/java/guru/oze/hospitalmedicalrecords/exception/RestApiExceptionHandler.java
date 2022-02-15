@@ -1,5 +1,8 @@
 package guru.oze.hospitalmedicalrecords.exception;
 
+import guru.oze.hospitalmedicalrecords.security.exception.SignUpException;
+import guru.oze.hospitalmedicalrecords.security.exception.TokenRefreshExpiredException;
+import guru.oze.hospitalmedicalrecords.security.exception.UserNotActivatedException;
 import guru.oze.hospitalmedicalrecords.service.constant.ResponseCode;
 import guru.oze.hospitalmedicalrecords.service.dto.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +14,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -121,8 +127,8 @@ public class RestApiExceptionHandler extends ResponseEntityExceptionHandler {
     //Handle MissingServletRequestParameterException. Triggered when a 'required' request parameter is missing.
     @Override
     protected ResponseEntity<Object> handleMissingServletRequestParameter(
-        MissingServletRequestParameterException ex, HttpHeaders headers,
-        HttpStatus status, WebRequest request) {
+            MissingServletRequestParameterException ex, HttpHeaders headers,
+            HttpStatus status, WebRequest request) {
         log.error(" handleMissingServletRequestParameter ", ex);
         String errorMessage = ex.getParameterName() + " parameter is missing";
         return buildResponseEntity(ResponseCode.ERROR.getCode(), errorMessage, ex.getLocalizedMessage(),
@@ -147,10 +153,10 @@ public class RestApiExceptionHandler extends ResponseEntityExceptionHandler {
     // Handle MethodArgumentNotValidException. Triggered when an object fails @Valid validation.
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
-        MethodArgumentNotValidException ex,
-        HttpHeaders headers,
-        HttpStatus status,
-        WebRequest request) {
+            MethodArgumentNotValidException ex,
+            HttpHeaders headers,
+            HttpStatus status,
+            WebRequest request) {
         log.error(" handleMethodArgumentNotValid ", ex);
         List<String> errors = new ArrayList<>();
 
@@ -168,7 +174,7 @@ public class RestApiExceptionHandler extends ResponseEntityExceptionHandler {
     //Handles javax.validation.ConstraintViolationException. Thrown when @Validated fails.
     @ExceptionHandler(ConstraintViolationException.class)
     protected ResponseEntity<Object> handleConstraintViolation(
-        ConstraintViolationException ex) {
+            ConstraintViolationException ex) {
         log.error(" handleConstraintViolation ", ex);
         Map<String, String> errors = new HashMap<>();
 
@@ -202,7 +208,7 @@ public class RestApiExceptionHandler extends ResponseEntityExceptionHandler {
     //Handle NoHandlerFoundException.
     @Override
     protected ResponseEntity<Object> handleNoHandlerFoundException(
-        NoHandlerFoundException ex, HttpHeaders headers, HttpStatus status, WebRequest request
+            NoHandlerFoundException ex, HttpHeaders headers, HttpStatus status, WebRequest request
     ) {
         log.error(" handleHttpMessageNotWritable ", ex);
         String errorMessage = String.format("Could not find the %s method for URL %s",
@@ -216,7 +222,7 @@ public class RestApiExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
         log.error("handleMethodArgumentTypeMismatch ", ex);
         String errorMessage = String.format("The parameter '%s' of value '%s' could not be converted to type '%s'",
-            ex.getName(), ex.getValue(), ex.getRequiredType());
+                ex.getName(), ex.getValue(), ex.getRequiredType());
 
         return buildResponseEntity(ResponseCode.ERROR.getCode(), errorMessage, ex.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
     }
@@ -234,7 +240,7 @@ public class RestApiExceptionHandler extends ResponseEntityExceptionHandler {
                 HttpStatus.BAD_REQUEST);
     }
 
-    //Handle genericException
+    //Handle GenralExceptiom
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<Object> handleAllException(Exception ex, WebRequest request) {
         log.error("handleAllException ", ex);
@@ -251,26 +257,6 @@ public class RestApiExceptionHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(ResponseCode.ERROR.getCode(),
                 "Connection error, please try again",
                 ex.getLocalizedMessage(), HttpStatus.BAD_REQUEST
-        );
-    }
-/*
-    @ExceptionHandler(InvalidPasswordException.class)
-    protected ResponseEntity<Object> handleInvalidPasswordException(InvalidPasswordException ex) {
-        log.error("handleInvalidPasswordException ", ex);
-
-        return buildResponseEntity(ResponseCode.ERROR.getCode(),
-                "Incorrect password",
-                ex.getLocalizedMessage(), HttpStatus.UNAUTHORIZED
-        );
-    }
-
-    @ExceptionHandler(LoginAlreadyUsedException.class)
-    protected ResponseEntity<Object> handleAlreadyUsedException(LoginAlreadyUsedException ex) {
-        log.error("handleInvalidPasswordException ", ex);
-
-        return buildResponseEntity(ResponseCode.ERROR.getCode(),
-                "Invalid login",
-                ex.getLocalizedMessage(), HttpStatus.UNAUTHORIZED
         );
     }
 
@@ -292,6 +278,15 @@ public class RestApiExceptionHandler extends ResponseEntityExceptionHandler {
         );
     }
 
+    @ExceptionHandler(TokenRefreshExpiredException.class)
+    protected ResponseEntity<Object> handleTokenRefreshExpiredException(TokenRefreshExpiredException ex) {
+        log.error("handleTokenRefreshExpiredException", ex);
+        return buildResponseEntity(ResponseCode.ERROR.getCode(),
+                ex.getMessage(),
+                ex.getLocalizedMessage(), HttpStatus.BAD_REQUEST
+        );
+    }
+
     @ExceptionHandler(InsufficientAuthenticationException.class)
     protected ResponseEntity<Object> handleAInsufficientAuthenticationException(InsufficientAuthenticationException ex) {
         log.error("handleAInsufficientAuthenticationException ", ex);
@@ -299,7 +294,7 @@ public class RestApiExceptionHandler extends ResponseEntityExceptionHandler {
                 "Insufficient authentication",
                 ex.getLocalizedMessage(), HttpStatus.UNAUTHORIZED
         );
-    }*/
+    }
 
     @ExceptionHandler(NullPointerException.class)
     protected ResponseEntity<Object> handleNullPointerException(NullPointerException ex) {
@@ -357,7 +352,16 @@ public class RestApiExceptionHandler extends ResponseEntityExceptionHandler {
         );
     }
 
-     @ExceptionHandler(FailedDecryptionException.class)
+    @ExceptionHandler(UserNotActivatedException.class)
+    protected ResponseEntity<Object> handleUserNotActivatedException(UserNotActivatedException ex) {
+        log.error("handleUserNotActivatedException", ex);
+        return buildResponseEntity(ResponseCode.ERROR.getCode(),
+                ex.getMessage(),
+                ex.getLocalizedMessage(), HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(FailedDecryptionException.class)
     protected ResponseEntity<Object> handleFailedDecryptionException(FailedDecryptionException ex) {
         log.error("handleFailedDecryptionException ", ex);
         return buildResponseEntity(ResponseCode.ERROR.getCode(),
@@ -393,8 +397,26 @@ public class RestApiExceptionHandler extends ResponseEntityExceptionHandler {
         );
     }
 
+    @ExceptionHandler(SignUpException.class)
+    protected ResponseEntity<Object> handleSignUpException(SignUpException ex) {
+        log.error("handleSignUpException ", ex);
+        return buildResponseEntity(ResponseCode.ERROR.getCode(),
+                ex.getMessage(),
+                ex.getLocalizedMessage(), HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(InvalidUserNameException.class)
+    protected ResponseEntity<Object> handleInvalidUserNameException(InvalidUserNameException ex) {
+        log.error("handleInvalidUserNameException ", ex);
+        return buildResponseEntity(ResponseCode.ERROR.getCode(),
+                ex.getMessage(),
+                ex.getLocalizedMessage(), HttpStatus.BAD_REQUEST
+        );
+    }
+
     private ResponseEntity<Object> buildResponseEntity(String code, String errorMessage, Object data,
-                                                      HttpStatus status) {
+                                                       HttpStatus status) {
         ApiResponse response = ApiResponse.builder()
                 .code(code)
                 .message(errorMessage)

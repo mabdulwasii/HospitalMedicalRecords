@@ -21,6 +21,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,32 +33,32 @@ public class PatientServiceImpl implements PatientService {
     private final SecurityUtil securityUtil;
 
     @Override
-    public ApiResponse createPatient(String apiKey, CreatePatientRequest request) {
-        securityUtil.ensureApiKeyIsValid(apiKey);
+    public ApiResponse createPatient(CreatePatientRequest request) {
+        securityUtil.ensureApiKeyIsValid();
         Patient patient = DtoTransformer.transformCreatePatientRequestToPatientEntity(request);
         Patient createdPatient = repository.save(patient);
         return DtoTransformer.buildApiResponse(createdPatient);
     }
 
     @Override
-    public ApiResponse updatePatientProfile(String apiKey, Patient patient) {
-        securityUtil.ensureApiKeyIsValid(apiKey);
+    public ApiResponse updatePatientProfile(Patient patient) {
+        securityUtil.ensureApiKeyIsValid();
         Patient updatedProfile = repository.save(patient);
         log.info("Update patient profile {} " , updatedProfile);
         return DtoTransformer.buildApiResponse(updatedProfile);
     }
 
     @Override
-    public ApiResponse fetchPatientsWithAgeUpToTwoYears(String apiKey) {
-        securityUtil.ensureApiKeyIsValid(apiKey);
+    public ApiResponse fetchPatientsWithAgeUpToTwoYears() {
+        securityUtil.ensureApiKeyIsValid();
         List<Patient> patientsAgeLessThanTwo = repository.findAllByAgeLessThanEqual(2);
         log.info("List of patients with age less than 2 {}", patientsAgeLessThanTwo);
         return DtoTransformer.buildApiResponse(patientsAgeLessThanTwo);
     }
 
     @Override
-    public void exportPatientProfileToCsv(String apiKey, Long patientId, HttpServletResponse response) {
-        securityUtil.ensureApiKeyIsValid(apiKey);
+    public void exportPatientProfileToCsv(Integer patientId, HttpServletResponse response) {
+        securityUtil.ensureApiKeyIsValid();
 
         Optional<Patient> patientOptional = repository.findById(patientId);
 
@@ -88,9 +89,9 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public ApiResponse deletePatientByDateRange(String apiKey, LocalDate startDate, LocalDate endDate) {
-        securityUtil.ensureApiKeyIsValid(apiKey);
-        repository.deleteByLastVisitDateIsBetween(startDate, endDate);
+    public ApiResponse deletePatientByDateRange(LocalDate startDate, LocalDate endDate) {
+        securityUtil.ensureApiKeyIsValid();
+        repository.deleteByLastVisitDateIsBetween(startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
         return DtoTransformer.buildApiResponse("Patient profile(s) deleted successfully");
     }
 }

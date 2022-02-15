@@ -5,4 +5,17 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <changeSet id="1644800319034-1" author="ABDULWASIU-MORONKOLA (generated)">
+        <dropForeignKeyConstraint baseTableName="user_authority" constraintName="FKgvxjs381k6f48d5d2yi11uh89"/>
+    </changeSet>
+    <changeSet id="1644800319034-2" author="ABDULWASIU-MORONKOLA (generated)">
+        <dropForeignKeyConstraint baseTableName="user_authority" constraintName="FKpqlsjpkybgos9w2svcri7j8xy"/>
+    </changeSet>
+    <changeSet id="1644800319034-3" author="ABDULWASIU-MORONKOLA (generated)">
+        <dropTable cascadeConstraints="true" tableName="hibernate_sequence"/>
+    </changeSet>
+    <changeSet id="1644800319034-4" author="ABDULWASIU-MORONKOLA (generated)">
+        <dropTable cascadeConstraints="true" tableName="user_authority"/>
+    </changeSet>
 </databaseChangeLog>

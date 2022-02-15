@@ -1,22 +1,27 @@
 package guru.oze.hospitalmedicalrecords.service.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
+@AllArgsConstructor
 public class CreatePatientRequest {
-    @NotEmpty(message = "Patient name cannot be empty")
-    private String name;
+    @NotEmpty(message = "Patient first name cannot be empty")
+    private String firstName;
+
+    @NotEmpty(message = "Patient last name cannot be empty")
+    private String lastName;
     @NotNull(message = "Age is required")
     private Integer age;
-    private LocalDate lastVisitDate;
+    private LocalDateTime lastVisitDate;
 
-    public LocalDate getLastVisitDate() {
+    public LocalDateTime getLastVisitDate() {
         if (lastVisitDate == null) {
-            return LocalDate.now();
+            return LocalDateTime.now();
         }
         return lastVisitDate;
     }

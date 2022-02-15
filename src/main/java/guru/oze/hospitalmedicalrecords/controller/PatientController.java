@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,48 +27,44 @@ public class PatientController {
 
     @PostMapping("patient")
     public ResponseEntity<ApiResponse> createPatient(
-            @RequestHeader("x-api-key") String apiKey,
             @RequestBody CreatePatientRequest request
     ){
         log.info("REST request to create patient {}", request);
-        ApiResponse response = service.createPatient(apiKey, request);
+        ApiResponse response = service.createPatient(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping("patient")
     public ResponseEntity<ApiResponse> updatePatientProfile(
-            @RequestHeader("x-api-key") String apiKey,
             @RequestBody Patient patient
     ){
         log.info("REST request to update patient {}", patient);
-        ApiResponse response = service.updatePatientProfile(apiKey, patient);
+        ApiResponse response = service.updatePatientProfile(patient);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("patient/upToTwo")
-    public ResponseEntity<ApiResponse> fetchPatientsWithAgeUpToTwoYears(@RequestHeader("x-api-key") String apiKey){
-        log.info("REST request to fetch patients with age up to two years {}", apiKey);
-        ApiResponse response = service.fetchPatientsWithAgeUpToTwoYears(apiKey);
+    public ResponseEntity<ApiResponse> fetchPatientsWithAgeUpToTwoYears(){
+        log.info("REST request to fetch patients with age up to two years");
+        ApiResponse response = service.fetchPatientsWithAgeUpToTwoYears();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping(value = "patient/export/csv/{patientId}")
     public void exportPatientProfileToCsv(
             HttpServletResponse response,
-            @PathVariable Long patientId,
-            @RequestHeader("x-api-key") String apiKey
+            @PathVariable Integer patientId
     ) {
         log.info("REST request to export a patient profile to csv {}", patientId);
-        service.exportPatientProfileToCsv(apiKey, patientId, response);
+        service.exportPatientProfileToCsv(patientId, response);
     }
 
     @PostMapping("patient/{startDate}/{endDate}")
     public ResponseEntity<ApiResponse> deletePatientByDateRange(
             @PathVariable LocalDate startDate,
-            @PathVariable LocalDate endDate,
-            @RequestHeader("x-api-key") String apiKey
+            @PathVariable LocalDate endDate
     ) {
-        ApiResponse response = service.deletePatientByDateRange(apiKey, startDate, endDate);
+        ApiResponse response = service.deletePatientByDateRange(startDate, endDate);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

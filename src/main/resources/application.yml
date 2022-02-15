@@ -3,7 +3,6 @@ server:
   servlet:
     context-path: /api
 
-
 spring:
   application:
     name: HospitalMedicalRecords
@@ -11,7 +10,7 @@ spring:
     template:
       check-template-location: false
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     show-sql: true
     generate-ddl: true
     hibernate:
@@ -25,18 +24,29 @@ spring:
         jdbc:
           time_zone: UTC
     open-in-view: false
+    database: mysql
 
-  h2:
-    console:
-      enabled: true
-      settings:
-        trace: false
-        web-allow-others: false
   datasource:
-    url: jdbc:h2:file:../hmr
+    driverClassName: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/hmr
     username: sa
-    password:
-    driverClassName: org.h2.Driver
+    password: password
+
   liquibase:
     contexts: dev, faker
     change-log: db/changelog/db-changelog.xml
+    default-schema: hmr
+  sql:
+    init:
+      continue-on-error: false
+      mode: always
+
+rsa:
+  key:
+    privateKeyFile: 'src/main/resources/private_key.key'
+    publicKeyFile: 'src/main/resources/public_key.pub'
+
+token:
+  header: 'Authorization'
+  expiration: 3600
+  refreshExpiration: 10000000
