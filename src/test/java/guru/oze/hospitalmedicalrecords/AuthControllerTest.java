@@ -132,7 +132,7 @@ class AuthControllerTest {
 
         when(authService.authenticate(loginDetails)).thenReturn(response);
 
-        mockMvc.perform(post("api/v1/register")
+        mockMvc.perform(post("/api/v1/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(loginDetails)))
                 .andExpect(status().isOk());
@@ -140,7 +140,7 @@ class AuthControllerTest {
 
     private String asJsonString(Object object) {
         try {
-            return new ObjectMapper().writeValueAsString(object);
+             return new ObjectMapper().findAndRegisterModules().writeValueAsString(object);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
