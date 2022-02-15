@@ -6,7 +6,6 @@ import guru.oze.hospitalmedicalrecords.service.AuthService;
 import guru.oze.hospitalmedicalrecords.service.UserService;
 import guru.oze.hospitalmedicalrecords.service.dto.ApiResponse;
 import guru.oze.hospitalmedicalrecords.service.dto.LoginDetails;
-import guru.oze.hospitalmedicalrecords.service.dto.RefreshTokenRequest;
 import guru.oze.hospitalmedicalrecords.service.dto.StaffInfo;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 @RestController
@@ -31,7 +31,8 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping({"/register"})
-    public ResponseEntity<?> register(@Valid @RequestBody StaffInfo staffInfo) {
+    public ResponseEntity<?> register(@Valid @RequestBody StaffInfo staffInfo,
+                                      HttpServletRequest request) {
         if (userService.existsByUsername(staffInfo.getUsername())) {
             throw new GenericException("Error: Username taken. Please input another username");
         }
@@ -40,27 +41,23 @@ public class AuthController {
     }
 
     @PostMapping({"/authenticate"})
-    public ResponseEntity<ApiResponse> authenticate(@Valid @RequestBody LoginDetails loginDetails) throws Exception {
+    public ResponseEntity<ApiResponse> authenticate(@Valid @RequestBody LoginDetails loginDetails,
+                                                    HttpServletRequest request) throws Exception {
         ApiResponse response = authService.authenticate(loginDetails);
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping({"/refresh_token"})
-    public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
-        ApiResponse response = authService.refreshToken(refreshTokenRequest);
-        return ResponseEntity.ok(response);
-    }
-
-    @PutMapping("staff/update")
-    public ResponseEntity<ApiResponse> updateStaff(@RequestBody @Valid StaffDto staffDto) {
+    @PutMapping("/staff/update")
+    public ResponseEntity<ApiResponse> updateStaff(@RequestBody @Valid StaffDto staffDto,
+                                                   HttpServletRequest request) {
         log.debug("REST request to update staff : {}", staffDto);
-        ApiResponse response = userService.updateStaff(staffDto);
+        ApiResponse response = userService.updateStaff(request, staffDto);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("staff")
-    public ResponseEntity<ApiResponse> getAllStaffs(){
-        ApiResponse response = userService.getAllStaffs();
+    @GetMapping("/staff")
+    public ResponseEntity<ApiResponse> getAllStaffs(HttpServletRequest request){
+        ApiResponse response = userService.getAllStaffs(request);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,7 +22,10 @@ public class UserDetailsImpl implements UserDetails {
     private final String username;
     @JsonIgnore
     private final String password;
-    private final String uuid;
+    private String firstName;
+    private String lastName;
+    private String uuid;
+    private LocalDate registrationDate;
     private final Collection<? extends GrantedAuthority> authorities;
 
 
@@ -34,19 +38,10 @@ public class UserDetailsImpl implements UserDetails {
                 user.getId(),
                 user.getUsername(),
                 user.getPassword(),
+                user.getFirstName(),
+                user.getLastName(),
                 user.getUuid(),
-                authorities);
-    }
-
-    public static UserDetailsImpl build(UserDetailsImpl userDetails, String uuid) {
-        List<GrantedAuthority> authorities = userDetails.getAuthorities().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getAuthority()))
-                .collect(Collectors.toList());
-        return new UserDetailsImpl(
-                userDetails.getId(),
-                userDetails.getUsername(),
-                userDetails.getPassword(),
-                uuid,
+                user.getRegistrationDate(),
                 authorities);
     }
 

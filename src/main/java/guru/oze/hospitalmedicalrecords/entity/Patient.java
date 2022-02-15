@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Entity
 @Builder
@@ -43,4 +44,12 @@ public class Patient {
 
     @Column(name = "last_visit_date")
     private LocalDateTime lastVisitDate;
+
+    public String getLastVisitDate() {
+        if (lastVisitDate == null){
+            return null;
+        }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return lastVisitDate.format(formatter);
+    }
 }

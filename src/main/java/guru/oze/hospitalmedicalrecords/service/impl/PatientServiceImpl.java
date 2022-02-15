@@ -1,7 +1,7 @@
 package guru.oze.hospitalmedicalrecords.service.impl;
 
 import guru.oze.hospitalmedicalrecords.entity.Patient;
-import guru.oze.hospitalmedicalrecords.exception.FailedExportToCsvException;
+import guru.oze.hospitalmedicalrecords.exception.GenericException;
 import guru.oze.hospitalmedicalrecords.exception.InvalidPatientException;
 import guru.oze.hospitalmedicalrecords.repository.PatientRepository;
 import guru.oze.hospitalmedicalrecords.service.PatientService;
@@ -12,15 +12,10 @@ import guru.oze.hospitalmedicalrecords.utils.SecurityUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.supercsv.io.CsvBeanWriter;
-import org.supercsv.io.ICsvBeanWriter;
-import org.supercsv.prefs.CsvPreference;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletResponse;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -28,69 +23,53 @@ import java.util.Optional;
 @Service
 @Slf4j
 @AllArgsConstructor
+@Transactional
 public class PatientServiceImpl implements PatientService {
     private final PatientRepository repository;
     private final SecurityUtil securityUtil;
 
     @Override
-    public ApiResponse createPatient(CreatePatientRequest request) {
-        securityUtil.ensureApiKeyIsValid();
-        Patient patient = DtoTransformer.transformCreatePatientRequestToPatientEntity(request);
+    public ApiResponse createPatient(HttpServletRequest request, CreatePatientRequest createPatientRequest) {
+        securityUtil.ensureApiKeyIsValid(request);
+        Patient patient = DtoTransformer.transformCreatePatientRequestToPatientEntity(createPatientRequest);
         Patient createdPatient = repository.save(patient);
         return DtoTransformer.buildApiResponse(createdPatient);
     }
 
     @Override
-    public ApiResponse updatePatientProfile(Patient patient) {
-        securityUtil.ensureApiKeyIsValid();
+    public ApiResponse updatePatientProfile(HttpServletRequest request, Patient patient) {
+        securityUtil.ensureApiKeyIsValid(request);
+        if(repository.existsPatientById(patient.getId())){
+            throw new GenericException("Invalid patient id");
+        }
         Patient updatedProfile = repository.save(patient);
         log.info("Update patient profile {} " , updatedProfile);
         return DtoTransformer.buildApiResponse(updatedProfile);
     }
 
     @Override
-    public ApiResponse fetchPatientsWithAgeUpToTwoYears() {
-        securityUtil.ensureApiKeyIsValid();
+    public ApiResponse fetchPatientsWithAgeUpToTwoYears(HttpServletRequest request) {
+        securityUtil.ensureApiKeyIsValid(request);
         List<Patient> patientsAgeLessThanTwo = repository.findAllByAgeLessThanEqual(2);
         log.info("List of patients with age less than 2 {}", patientsAgeLessThanTwo);
         return DtoTransformer.buildApiResponse(patientsAgeLessThanTwo);
     }
 
     @Override
-    public void exportPatientProfileToCsv(Integer patientId, HttpServletResponse response) {
-        securityUtil.ensureApiKeyIsValid();
+    public Patient getPatientProfile(HttpServletRequest request, Integer patientId) {
+        securityUtil.ensureApiKeyIsValid(request);
 
         Optional<Patient> patientOptional = repository.findById(patientId);
 
         if (patientOptional.isEmpty()) {
             throw new InvalidPatientException("Invalid patient Id");
         }
-        Patient patient = patientOptional.get();
-
-        response.setContentType("text/csv");
-        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-        String currentDateTime = dateFormatter.format(LocalDateTime.now());
-
-        String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=users_" + currentDateTime + ".csv";
-        response.setHeader(headerKey, headerValue);
-
-        try {
-            ICsvBeanWriter csvWriter = new CsvBeanWriter(response.getWriter(), CsvPreference.STANDARD_PREFERENCE);
-            String[] csvHeader = {"Patient ID", "Name", "Age", "Last visit date"};
-            String[] nameMapping = {"id", "name", "age", "lastVisitDate"};
-
-            csvWriter.writeHeader(csvHeader);
-            csvWriter.write(patient, nameMapping);
-        }catch (Exception e){
-            log.error("Failed to export patient profile to csv " + e);
-            throw new FailedExportToCsvException("Failed to export patient profile to csv");
-        }
+        return patientOptional.get();
     }
 
     @Override
-    public ApiResponse deletePatientByDateRange(LocalDate startDate, LocalDate endDate) {
-        securityUtil.ensureApiKeyIsValid();
+    public ApiResponse deletePatientByDateRange(HttpServletRequest request, LocalDate startDate, LocalDate endDate) {
+        securityUtil.ensureApiKeyIsValid(request);
         repository.deleteByLastVisitDateIsBetween(startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
         return DtoTransformer.buildApiResponse("Patient profile(s) deleted successfully");
     }

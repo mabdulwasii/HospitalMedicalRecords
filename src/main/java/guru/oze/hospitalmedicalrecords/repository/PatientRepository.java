@@ -10,4 +10,5 @@ import java.util.List;
 public interface PatientRepository extends JpaRepository<Patient, Integer> {
     List<Patient> findAllByAgeLessThanEqual(@NonNull Integer age);
     void deleteByLastVisitDateIsBetween(@NonNull LocalDateTime startDate, @NonNull LocalDateTime endDate);
+    boolean existsPatientById(Integer id);
 }

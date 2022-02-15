@@ -8,8 +8,6 @@ import guru.oze.hospitalmedicalrecords.service.constant.ResponseCode;
 import guru.oze.hospitalmedicalrecords.service.dto.ApiResponse;
 import guru.oze.hospitalmedicalrecords.service.dto.Jwt;
 import guru.oze.hospitalmedicalrecords.service.dto.LoginDetails;
-import guru.oze.hospitalmedicalrecords.service.dto.RefreshTokenRequest;
-import guru.oze.hospitalmedicalrecords.service.dto.RefreshTokenResponse;
 import guru.oze.hospitalmedicalrecords.service.dto.StaffInfo;
 import guru.oze.hospitalmedicalrecords.utils.DtoTransformer;
 import org.junit.jupiter.api.Assertions;
@@ -28,7 +26,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -139,22 +136,6 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(loginDetails)))
                 .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("Should refresh token if token is valid")
-    void shouldRefreshTokenIfCodeIsValid() throws Exception {
-
-	    var refreshTokenRequest = new RefreshTokenRequest(REFRESH_TOKEN);
-	    var tokenRefreshResponse = new RefreshTokenResponse(ACCESS_TOKEN, REFRESH_TOKEN);
-        ApiResponse response = DtoTransformer.buildApiResponse(tokenRefreshResponse);
-
-        when(authService.refreshToken(any())).thenReturn(response);
-
-	    mockMvc.perform(post("/refresh_token")
-					    .contentType(MediaType.APPLICATION_JSON)
-					    .content(asJsonString(refreshTokenRequest)))
-			    .andExpect(status().isOk());
     }
 
     private String asJsonString(Object object) {

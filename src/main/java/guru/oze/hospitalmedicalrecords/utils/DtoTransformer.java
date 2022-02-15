@@ -20,6 +20,14 @@ public class DtoTransformer {
         return buildApiResponse(ResponseCode.SUCCESS.getMessage(), data);
     }
 
+    public static ApiResponse buildFailApiResponse(Object data, String message) {
+        return ApiResponse.builder()
+                .code(ResponseCode.FAIL.getCode())
+                .message(message)
+                .data(data)
+                .build();
+    }
+
     public static ApiResponse buildApiResponse(String message, Object data) {
         return ApiResponse.builder()
                 .code(ResponseCode.SUCCESS.getCode())

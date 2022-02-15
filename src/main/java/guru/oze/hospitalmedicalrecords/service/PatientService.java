@@ -4,13 +4,13 @@ import guru.oze.hospitalmedicalrecords.entity.Patient;
 import guru.oze.hospitalmedicalrecords.service.dto.ApiResponse;
 import guru.oze.hospitalmedicalrecords.service.dto.CreatePatientRequest;
 
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 
 public interface PatientService {
-    ApiResponse createPatient(CreatePatientRequest request);
-    ApiResponse updatePatientProfile(Patient patient);
-    ApiResponse fetchPatientsWithAgeUpToTwoYears();
-    void exportPatientProfileToCsv(Integer patientId, HttpServletResponse response);
-    ApiResponse deletePatientByDateRange(LocalDate startDate, LocalDate endDate);
+    ApiResponse createPatient(HttpServletRequest request, CreatePatientRequest createPatientRequest);
+    ApiResponse updatePatientProfile(HttpServletRequest request, Patient patient);
+    ApiResponse fetchPatientsWithAgeUpToTwoYears(HttpServletRequest request);
+    Patient getPatientProfile(HttpServletRequest request, Integer patientId);
+    ApiResponse deletePatientByDateRange(HttpServletRequest request, LocalDate startDate, LocalDate endDate);
 }

@@ -17,7 +17,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -26,63 +28,75 @@ import java.util.Set;
 @Service
 @AllArgsConstructor
 @Slf4j
+@Transactional
 public class UserServiceImpl implements UserService {
-	private final UserRepository userRepository;
-	private final PasswordEncoder passwordEncoder;
-	private final AuthorityRepository authorityRepository;
-	private final SecurityUtil securityUtil;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthorityRepository authorityRepository;
+    private final SecurityUtil securityUtil;
 
-	@Override
-	public ApiResponse registerStaff(StaffInfo staffInfo) {
-		if (staffInfo.getPassword().equalsIgnoreCase(staffInfo.getConfirmPassword())) {
-			String encryptedPassword = passwordEncoder.encode(staffInfo.getPassword());
-			Set<Authority> authorities = new HashSet<>();
-			authorityRepository.findByName(AuthorityType.ROLE_USER).ifPresent(authorities::add);
+    @Override
+    public ApiResponse registerStaff(StaffInfo staffInfo) {
+        if (staffInfo.getPassword().equalsIgnoreCase(staffInfo.getConfirmPassword())) {
+            String encryptedPassword = passwordEncoder.encode(staffInfo.getPassword());
+            Set<Authority> authorities = new HashSet<>();
+            authorityRepository.findByName(AuthorityType.ROLE_USER).ifPresent(authorities::add);
 
-			User user = DtoTransformer.transformStaffInfoToUserEntity(staffInfo, encryptedPassword, authorities);
-			User createdUser = userRepository.save(user);
-			log.info("Created staff user {}", createdUser);
+            User user = DtoTransformer.transformStaffInfoToUserEntity(staffInfo, encryptedPassword, authorities);
+            User createdUser = userRepository.save(user);
+            log.info("registered staff user {}", createdUser);
 
-			StaffDto staffDto = DtoTransformer.transformUserEntityToStaffDto(createdUser);
-			log.info("transformed staffDto {}", staffDto);
-			return DtoTransformer.buildApiResponse("Staff created successfully", staffDto);
+            StaffDto staffDto = DtoTransformer.transformUserEntityToStaffDto(createdUser);
+            log.info("transformed staffDto {}", staffDto);
+            return DtoTransformer.buildApiResponse("Staff registered successfully", staffDto);
         }
 
-		throw new GenericException("Password mismatch");
+        throw new GenericException("Password mismatch");
     }
 
     @Override
     public Optional<User> findByUserName(String username) {
-		return userRepository.findOneWithAuthoritiesByUsernameIgnoreCase(username);
+        return userRepository.findOneWithAuthoritiesByUsernameIgnoreCase(username);
     }
 
-	@Override
-	public ApiResponse updateStaff(StaffDto staffDto) {
-		securityUtil.ensureApiKeyIsValid();
-		if (!userRepository.existsByUsername(staffDto.getUsername())) {
-			throw new InvalidUserNameException("Invalid username");
-		}
-		User staffUser = DtoTransformer.transformStaffDtoToUserEntity(staffDto);
+    @Override
+    public ApiResponse updateStaff(HttpServletRequest request, StaffDto staffDto) {
+        securityUtil.ensureApiKeyIsValid(request);
+        Optional<User> userOptional = userRepository.findById(staffDto.getId());
+        if (userOptional.isEmpty()) {
+            throw new InvalidUserNameException("Invalid username");
+        }
+        userOptional
+                .map(user -> {
+                    user.setUsername(staffDto.getUsername().toLowerCase());
+                    user.setFirstName(staffDto.getFirstName());
+                    user.setLastName(staffDto.getLastName());
+                    user.setPassword(user.getPassword());
+                    user.setActivated(user.isActivated());
+                    user.setAuthorities(user.getAuthorities());
+					log.debug("Changed Information for User: {}", user);
+					return DtoTransformer.buildApiResponse("Staff updated successfully", user);
+				});
 
-		User updatedStaff = userRepository.save(staffUser);
-		log.info("Updated staff user {}", updatedStaff);
+		StaffDto updatedStaff = DtoTransformer.transformUserEntityToStaffDto(userOptional.get());
+
 		return DtoTransformer.buildApiResponse("Staff updated successfully", updatedStaff);
-	}
+    }
 
-	@Override
-	public ApiResponse getAllStaffs() {
-		securityUtil.ensureApiKeyIsValid();
-		List<User> staffList = userRepository.findAll();
-		log.info("Retrieved staff list {}", staffList);
+    @Override
+    public ApiResponse getAllStaffs(HttpServletRequest request) {
+        securityUtil.ensureApiKeyIsValid(request);
+        List<User> staffList = userRepository.findAll();
+        log.info("Retrieved staff list {}", staffList);
 
-		List<StaffDto> staffDtoList = DtoTransformer.transformUserEntityListToStaffDtoList(staffList);
-		log.info("Retrieved staff dto list {}", staffDtoList);
+        List<StaffDto> staffDtoList = DtoTransformer.transformUserEntityListToStaffDtoList(staffList);
+        log.info("Retrieved staff dto list {}", staffDtoList);
 
-		return DtoTransformer.buildApiResponse("Staff updated successfully", staffDtoList);
-	}
+        return DtoTransformer.buildApiResponse(staffDtoList);
+    }
 
-	@Override
-	public boolean existsByUsername(String username) {
-		return userRepository.existsByUsername(username);
-	}
+    @Override
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
+    }
 }

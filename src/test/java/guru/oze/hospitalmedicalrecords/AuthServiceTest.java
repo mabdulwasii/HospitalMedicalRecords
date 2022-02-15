@@ -1,17 +1,11 @@
 package guru.oze.hospitalmedicalrecords;
 
-import guru.oze.hospitalmedicalrecords.config.RSAKeyConfigProperties;
-import guru.oze.hospitalmedicalrecords.entity.RefreshToken;
 import guru.oze.hospitalmedicalrecords.entity.User;
 import guru.oze.hospitalmedicalrecords.exception.GenericException;
-import guru.oze.hospitalmedicalrecords.security.exception.TokenRefreshExpiredException;
 import guru.oze.hospitalmedicalrecords.security.jwt.JWTUtils;
 import guru.oze.hospitalmedicalrecords.service.AuthService;
-import guru.oze.hospitalmedicalrecords.service.RefreshTokenService;
 import guru.oze.hospitalmedicalrecords.service.UserService;
 import guru.oze.hospitalmedicalrecords.service.dto.ApiResponse;
-import guru.oze.hospitalmedicalrecords.service.dto.RefreshTokenRequest;
-import guru.oze.hospitalmedicalrecords.service.dto.RefreshTokenResponse;
 import guru.oze.hospitalmedicalrecords.service.dto.StaffInfo;
 import guru.oze.hospitalmedicalrecords.utils.DtoTransformer;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,15 +17,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.test.context.support.WithMockUser;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @WithMockUser
@@ -52,8 +42,6 @@ class AuthServiceTest {
     @MockBean
     private AuthenticationManager authenticationManager;
 
-    @MockBean
-    private RefreshTokenService refreshTokenService;
 
     @MockBean
     private UserService userService;
@@ -61,9 +49,6 @@ class AuthServiceTest {
 
     @MockBean
     private JWTUtils jwtUtils;
-
-    @MockBean
-    private RSAKeyConfigProperties rsaKeyProp;
 
     StaffInfo staffInfo;
     StaffInfo staffInfoWithPasswordMisMatch;
@@ -108,42 +93,5 @@ class AuthServiceTest {
     void shouldThrowExceptionIfUserNotSaved() {
         when(userService.registerStaff(staffInfoWithPasswordMisMatch)).thenThrow(GenericException.class);
         assertThrows(GenericException.class, () -> authService.register(staffInfo));
-    }
-
-    @Test
-    @DisplayName("should Refresh token if token has not expired")
-    void shouldRefreshTokenIfNotExpired() {
-	    var user = new User(USER_ID, USERNAME, PASSWORD, true);
-	    var refreshToken = new RefreshToken(1L, user, REFRESH_TOKEN, Instant.now().plus(Duration.ofMillis(2000)));
-
-	    RefreshTokenRequest refreshTokenRequest = new RefreshTokenRequest(REFRESH_TOKEN);
-
-	    when(refreshTokenService.findByToken(REFRESH_TOKEN)).thenReturn(Optional.of(refreshToken));
-	    when(refreshTokenService.verifyExpiration(any())).thenReturn(refreshToken);
-	    when(jwtUtils.generateToken(any(), any())).thenReturn(ACCESS_TOKEN);
-
-	    ApiResponse response = authService.refreshToken(refreshTokenRequest);
-        RefreshTokenResponse refreshTokenResponse = (RefreshTokenResponse)response.getData();
-
-        assertNotNull(refreshTokenResponse);
-	    assertEquals(refreshTokenResponse.getRefreshToken(), REFRESH_TOKEN);
-	    assertEquals(refreshTokenResponse.getTokenType(), "Bearer");
-	    assertEquals(refreshTokenResponse.getAccessToken(), ACCESS_TOKEN);
-    }
-
-    @Test
-    @DisplayName("should throw exception if token has expired")
-    void shouldThrowExceptionIfTokenExpired() {
-
-        var user = new User(USER_ID, USERNAME, PASSWORD, true);
-        var refreshToken = new RefreshToken(1L, user, REFRESH_TOKEN, Instant.now().plus(Duration.ofMillis(2000)));
-
-        RefreshTokenRequest refreshTokenRequest = new RefreshTokenRequest(REFRESH_TOKEN);
-
-        when(refreshTokenService.findByToken(REFRESH_TOKEN)).thenReturn(Optional.of(refreshToken));
-        when(refreshTokenService.verifyExpiration(any())).thenThrow(TokenRefreshExpiredException.class);
-        when(jwtUtils.generateToken(any(), any())).thenReturn(ACCESS_TOKEN);
-
-        assertThrows(TokenRefreshExpiredException.class, () -> authService.refreshToken(refreshTokenRequest));
     }
 }

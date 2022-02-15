@@ -1,23 +1,25 @@
 package guru.oze.hospitalmedicalrecords.security.jwt;
 
-import io.jsonwebtoken.Claims;
+import guru.oze.hospitalmedicalrecords.utils.EncryptionUtil;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 
 @Component
 @ToString
+@Slf4j
 public class JWTUtils {
 
     @Value("${token.header}")
@@ -29,53 +31,59 @@ public class JWTUtils {
     @Value("${token.refreshExpiration}")
     private long refreshExpiration;
 
-    private static String createJTI() {
-        return new String(Base64.getEncoder().encode(UUID.randomUUID().toString().getBytes()));
-    }
+    @Value("${token.secret}")
+    private String secret;
 
-    /**
-     * Generate token token
-     *
-     * @param userDetails user
-     * @return token token
-     */
-    public String generateToken(UserDetailsImpl userDetails, PrivateKey privateKey) {
-	    HashMap<String, Object> claims = new HashMap<>();
-	    claims.put("sub", userDetails.getUsername());
-	    claims.put("uuid", userDetails.getUuid());
-	    return generateToken(claims, privateKey);
-    }
+    public String generateJwtToken(Authentication authentication) {
+        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
 
-	/**
-	 * Generate token
-	 *
-	 * @param claims Data declaration
-	 * @return token token
-	 */
-	private String generateToken(Map<String, Object> claims, PrivateKey privateKey) {
-		Date date = new Date();
-		return Jwts.builder().setClaims(claims)
-				.setId(createJTI())
-				.setIssuedAt(date)
-                .setExpiration(new Date(date.getTime() + expiration))
-                .signWith(SignatureAlgorithm.RS256, privateKey)
+        log.info("userPrincipal generateJwtToken {}", userPrincipal);
+        log.info("username generateJwtToken {}", userPrincipal.getUsername());
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("username", userPrincipal.getUsername());
+        claims.put("id", userPrincipal.getId());
+        claims.put("uuid", EncryptionUtil.encrypt(userPrincipal.getUuid()));
+        return Jwts.builder()
+                .setSubject((userPrincipal.getUsername()))
+                .setClaims(claims)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + expiration))
+                .signWith(SignatureAlgorithm.HS512, secret)
                 .compact();
     }
 
-    /**
-     * Get data claim
-     *
-     * @param token token
-     * @return Data declaration
-     */
-    private Optional<Claims> getClaimsFromToken(String token, PublicKey publicKey) {
-        Claims claims;
+    public String getUserNameFromJwtToken(String token) {
+        log.info("Signing secret {}", secret);
+        String username = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().get("username",
+                String.class);
+        log.info("Username from token {}", username);
+        return username;
+    }
+
+     public String getUuidFromJwtToken(String token) {
+        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().get("uuid", String.class);
+    }
+
+    public boolean validateJwtToken(String authToken) {
         try {
-            claims = Jwts.parser().setSigningKey(publicKey).parseClaimsJws(token).getBody();
-        } catch (Exception e) {
-            claims = null;
+            Jwts.parser().setSigningKey(secret).parseClaimsJws(authToken);
+            return true;
+        } catch (SignatureException e) {
+            log.error("Invalid JWT signature: {}", e.getMessage());
+        } catch (MalformedJwtException e) {
+            log.error("Invalid JWT token: {}", e.getMessage());
+        } catch (ExpiredJwtException e) {
+            log.error("JWT token is expired: {}", e.getMessage());
+        } catch (UnsupportedJwtException e) {
+            log.error("JWT token is unsupported: {}", e.getMessage());
+        } catch (IllegalArgumentException e) {
+            log.error("JWT claims string is empty: {}", e.getMessage());
         }
-        return Optional.ofNullable(claims);
+
+        log.info("Invalid jwt");
+
+        return false;
     }
 
     public long getRefreshExpiration() {

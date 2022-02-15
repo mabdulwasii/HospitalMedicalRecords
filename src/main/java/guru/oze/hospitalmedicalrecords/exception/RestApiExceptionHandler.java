@@ -1,7 +1,6 @@
 package guru.oze.hospitalmedicalrecords.exception;
 
 import guru.oze.hospitalmedicalrecords.security.exception.SignUpException;
-import guru.oze.hospitalmedicalrecords.security.exception.TokenRefreshExpiredException;
 import guru.oze.hospitalmedicalrecords.security.exception.UserNotActivatedException;
 import guru.oze.hospitalmedicalrecords.service.constant.ResponseCode;
 import guru.oze.hospitalmedicalrecords.service.dto.ApiResponse;
@@ -251,6 +250,17 @@ public class RestApiExceptionHandler extends ResponseEntityExceptionHandler {
         );
     }
 
+     //Handle GenralExceptiom
+    @ExceptionHandler(Throwable.class)
+    protected ResponseEntity<Object> handleAllException(Throwable ex, WebRequest request) {
+        log.error("handleAllThrowableException ", ex);
+
+        return buildResponseEntity(ResponseCode.ERROR.getCode(),
+                "Error!, please try again",
+                ex.getLocalizedMessage(), HttpStatus.BAD_REQUEST
+        );
+    }
+
     @ExceptionHandler(HttpServerErrorException.class)
     protected ResponseEntity<Object> handleHttpServerErrorException(HttpServerErrorException ex) {
         log.error("handleHttpServerErrorException ", ex);
@@ -278,15 +288,6 @@ public class RestApiExceptionHandler extends ResponseEntityExceptionHandler {
         );
     }
 
-    @ExceptionHandler(TokenRefreshExpiredException.class)
-    protected ResponseEntity<Object> handleTokenRefreshExpiredException(TokenRefreshExpiredException ex) {
-        log.error("handleTokenRefreshExpiredException", ex);
-        return buildResponseEntity(ResponseCode.ERROR.getCode(),
-                ex.getMessage(),
-                ex.getLocalizedMessage(), HttpStatus.BAD_REQUEST
-        );
-    }
-
     @ExceptionHandler(InsufficientAuthenticationException.class)
     protected ResponseEntity<Object> handleAInsufficientAuthenticationException(InsufficientAuthenticationException ex) {
         log.error("handleAInsufficientAuthenticationException ", ex);
@@ -295,6 +296,8 @@ public class RestApiExceptionHandler extends ResponseEntityExceptionHandler {
                 ex.getLocalizedMessage(), HttpStatus.UNAUTHORIZED
         );
     }
+
+
 
     @ExceptionHandler(NullPointerException.class)
     protected ResponseEntity<Object> handleNullPointerException(NullPointerException ex) {
@@ -375,7 +378,7 @@ public class RestApiExceptionHandler extends ResponseEntityExceptionHandler {
         log.error("handleFailedExportToCsvException ", ex);
         return buildResponseEntity(ResponseCode.ERROR.getCode(),
                 ex.getMessage(),
-                ex.getLocalizedMessage(), HttpStatus.UNAUTHORIZED
+                ex.getLocalizedMessage(), HttpStatus.BAD_REQUEST
         );
     }
 
