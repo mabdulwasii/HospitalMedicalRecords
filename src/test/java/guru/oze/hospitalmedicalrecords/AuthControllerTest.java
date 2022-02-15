@@ -79,7 +79,7 @@ class AuthControllerTest {
 		when(authService.register(staffInfo)).thenReturn(apiResponse);
 
 		//execute the post request
-		mockMvc.perform(post("/signup")
+		mockMvc.perform(post("/api/v1/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(staffInfo)))
                 .andExpect(status().isOk());
@@ -94,11 +94,10 @@ class AuthControllerTest {
                 .message("Error: Username taken. Please input another username")
                 .build();
 
-
         when(userRepository.existsByUsername(username)).thenReturn(true);
 
         //execute the post request
-        mockMvc.perform(post("/signup")
+        mockMvc.perform(post("/api/v1/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(staffInfo)))
 
@@ -116,7 +115,8 @@ class AuthControllerTest {
 
 	    //execute the post request
 
-	    Assertions.assertThrows(AssertionError.class, () -> mockMvc.perform(post("/signup").contentType(MediaType.APPLICATION_JSON)
+	    Assertions.assertThrows(AssertionError.class,
+                () -> mockMvc.perform(post("/api/v1/register").contentType(MediaType.APPLICATION_JSON)
 					    .content(asJsonString(staffInfo)))
 
 			    .andExpect(status().is5xxServerError()).andExpect(content().contentType(MediaType.APPLICATION_JSON)));
@@ -132,7 +132,7 @@ class AuthControllerTest {
 
         when(authService.authenticate(loginDetails)).thenReturn(response);
 
-        mockMvc.perform(post("/register")
+        mockMvc.perform(post("api/v1/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(loginDetails)))
                 .andExpect(status().isOk());

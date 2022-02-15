@@ -31,8 +31,7 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping({"/register"})
-    public ResponseEntity<?> register(@Valid @RequestBody StaffInfo staffInfo,
-                                      HttpServletRequest request) {
+    public ResponseEntity<?> register(@Valid @RequestBody StaffInfo staffInfo) {
         if (userService.existsByUsername(staffInfo.getUsername())) {
             throw new GenericException("Error: Username taken. Please input another username");
         }
@@ -41,8 +40,7 @@ public class AuthController {
     }
 
     @PostMapping({"/authenticate"})
-    public ResponseEntity<ApiResponse> authenticate(@Valid @RequestBody LoginDetails loginDetails,
-                                                    HttpServletRequest request) throws Exception {
+    public ResponseEntity<ApiResponse> authenticate(@Valid @RequestBody LoginDetails loginDetails) throws Exception {
         ApiResponse response = authService.authenticate(loginDetails);
         return ResponseEntity.ok(response);
     }
