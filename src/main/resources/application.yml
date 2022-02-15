@@ -14,7 +14,7 @@ spring:
     show-sql: true
     generate-ddl: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       hibernate:
         connection:
@@ -43,6 +43,10 @@ spring:
     init:
       continue-on-error: false
       mode: always
+rsa:
+  key:
+    privateKeyFile: 'src/main/resources/key/private_key.key'
+    publicKeyFile: 'src/main/resources/key/public_key.pub'
 
 token:
   header: 'Authorization'

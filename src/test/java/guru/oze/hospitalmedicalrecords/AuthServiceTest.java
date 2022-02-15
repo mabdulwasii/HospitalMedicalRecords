@@ -85,13 +85,13 @@ class AuthServiceTest {
 	    var apiResponse = authService.register(staffInfo);
 
 	    assertNotNull(apiResponse);
-	    assertEquals(apiResponse.getMessage(), "User created successfully");
+	    assertEquals(apiResponse.getMessage(), "Success");
     }
 
     @Test
     @DisplayName("should Throw generic exception if password mismatch")
     void shouldThrowExceptionIfUserNotSaved() {
         when(userService.registerStaff(staffInfoWithPasswordMisMatch)).thenThrow(GenericException.class);
-        assertThrows(GenericException.class, () -> authService.register(staffInfo));
+        assertThrows(GenericException.class, () -> authService.register(staffInfoWithPasswordMisMatch));
     }
 }

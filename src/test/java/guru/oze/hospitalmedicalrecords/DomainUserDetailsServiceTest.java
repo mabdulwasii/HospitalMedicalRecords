@@ -1,6 +1,8 @@
 package guru.oze.hospitalmedicalrecords;
 
+import guru.oze.hospitalmedicalrecords.entity.Authority;
 import guru.oze.hospitalmedicalrecords.entity.User;
+import guru.oze.hospitalmedicalrecords.entity.enumeration.AuthorityType;
 import guru.oze.hospitalmedicalrecords.repository.UserRepository;
 import guru.oze.hospitalmedicalrecords.security.exception.UserNotActivatedException;
 import guru.oze.hospitalmedicalrecords.security.service.DomainUserDetailsService;
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import java.util.HashSet;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,6 +37,10 @@ class DomainUserDetailsServiceTest {
 	void setUp() {
 		domainUserDetailsService = new DomainUserDetailsService(userRepository);
         user = new User(USER_ID, username, PASSWORD, true);
+        Authority authority = new Authority(1, AuthorityType.ROLE_USER);
+        HashSet<Authority> authorities = new HashSet<>();
+        authorities.add(authority);
+        user.setAuthorities(authorities);
 	}
 
 	@Test
@@ -61,6 +68,7 @@ class DomainUserDetailsServiceTest {
     @Test
     @DisplayName("Should not load user if username is is not found")
     void shouldThrowExceptionIfUsernameNotActivated() {
+        user.setActivated(false);
         when(userRepository.findOneWithAuthoritiesByUsernameIgnoreCase(username)).thenReturn(Optional.of(user));
         assertThrows(UserNotActivatedException.class, () -> domainUserDetailsService.loadUserByUsername(username));
     }

@@ -50,7 +50,6 @@ public class UserServiceImpl implements UserService {
             log.info("transformed staffDto {}", staffDto);
             return DtoTransformer.buildApiResponse("Staff registered successfully", staffDto);
         }
-
         throw new GenericException("Password mismatch");
     }
 
